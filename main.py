@@ -7,7 +7,6 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.utils import platform
-from kivy.clock import Clock
 import sqlite3
 from datetime import datetime, timedelta
 
@@ -42,7 +41,7 @@ class ExpirationApp(App):
         self.db = Database()
         sm = ScreenManager()
         
-        # MAIN
+        # MAIN SCREEN
         ms = MainScreen(name='main')
         ml = BoxLayout(orientation='vertical', padding=10, spacing=10)
         ml.add_widget(Label(text='СРОКИ ГОДНОСТИ', bold=True, font_size=22, size_hint=(1,0.08)))
@@ -58,7 +57,7 @@ class ExpirationApp(App):
         ms.add_widget(ml)
         sm.add_widget(ms)
         
-        # ADD
+        # ADD SCREEN
         ads = AddScreen(name='add')
         al = BoxLayout(orientation='vertical', padding=20, spacing=10)
         al.add_widget(Label(text='ДОБАВИТЬ ПРОДУКТ', bold=True, font_size=18, size_hint=(1,0.08)))
@@ -81,43 +80,26 @@ class ExpirationApp(App):
         return sm
     
     def scan_barcode(self, instance):
-        """Сканирование через ZXing (или ручной ввод на ПК)"""
+        """Сканирование штрих-кода"""
         if platform == 'android':
             try:
-                from plyer import barometer
-                # На Android используем ZXing через Intent
                 from jnius import autoclass
+                from kivy.clock import Clock
+                
                 PythonActivity = autoclass('org.kivy.android.PythonActivity')
                 Intent = autoclass('android.content.Intent')
                 
                 intent = Intent('com.google.zxing.client.android.SCAN')
                 intent.putExtra('SCAN_MODE', 'PRODUCT_MODE')
-                PythonActivity.mActivity.startActivityForResult(intent, 0)
                 
-                # Ждём результат
-                Clock.schedule_interval(self.check_scan_result, 0.5)
-            except Exception as e:
+                PythonActivity.mActivity.startActivityForResult(intent, 0)
+                Clock.schedule_once(lambda dt: self.show_manual_input(), 3)
+            except:
                 self.show_manual_input()
         else:
             self.show_manual_input()
     
-    def check_scan_result(self, dt):
-        """Проверка результата сканирования (для Android)"""
-        try:
-            from jnius import autoclass
-            PythonActivity = autoclass('org.kivy.android.PythonActivity')
-            activity = PythonActivity.mActivity
-            
-            if hasattr(activity, 'barcode_result'):
-                barcode = activity.barcode_result
-                delattr(activity, 'barcode_result')
-                Clock.unschedule(self.check_scan_result)
-                self.process_barcode(barcode)
-        except:
-            pass
-    
     def show_manual_input(self):
-        """Ручной ввод штрих-кода"""
         l = BoxLayout(orientation='vertical', padding=10, spacing=10)
         inp = TextInput(hint_text='Введите штрих-код', multiline=False)
         l.add_widget(inp)
@@ -133,10 +115,8 @@ class ExpirationApp(App):
         p.open()
     
     def process_barcode(self, barcode):
-        """Обработка найденного штрих-кода"""
         if not barcode:
             return
-        
         prod = self.db.get(barcode)
         if prod:
             exp_date = datetime.strptime(prod[2], '%Y-%m-%d').date()
@@ -199,9 +179,9 @@ class ExpirationApp(App):
             r2.add_widget(Label(text=f'Код: {bc}', size_hint_x=0.5))
             r2.add_widget(Label(text=f'Годен до: {ex}', size_hint_x=0.5))
             card.add_widget(r2)
-            db = Button(text='Удалить', size_hint_y=None, height=30, background_color=(1,0.3,0.3,1))
-            db.bind(on_press=lambda x, bc=bc: self.del_prod(bc))
-            card.add_widget(db)
+            db_btn = Button(text='Удалить', size_hint_y=None, height=30, background_color=(1,0.3,0.3,1))
+            db_btn.bind(on_press=lambda x, bc=bc: self.del_prod(bc))
+            card.add_widget(db_btn)
             self.pl.add_widget(card)
     
     def del_prod(self, bc):
