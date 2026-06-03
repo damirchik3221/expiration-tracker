@@ -5,7 +5,7 @@ package.domain = org.test
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 version = 1.0
-requirements = python3,kivy==2.2.1,numpy,pyzbar,opencv-python-headless
+requirements = python3,kivy==2.2.1,numpy,pyzbar,opencv
 orientation = portrait
 android.permissions = CAMERA
 android.api = 33
