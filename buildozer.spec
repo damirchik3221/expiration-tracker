@@ -10,7 +10,7 @@ orientation = portrait
 android.permissions = CAMERA
 android.api = 30
 android.minapi = 21
-android.ndk = 23b
+android.ndk = 27c
 
 [buildozer]
 log_level = 2
