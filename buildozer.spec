@@ -5,14 +5,12 @@ package.domain = org.test
 source.dir = .
 source.include_exts = py
 version = 1.0
-requirements = python3,kivy==2.2.1
+requirements = python3,kivy
 orientation = portrait
 android.permissions = CAMERA
-android.api = 33
-android.minapi = 24
-android.ndk = 25b
-android.gradle_dependencies = 
-p4a.branch = develop
+android.api = 30
+android.minapi = 21
+android.ndk = 23b
 
 [buildozer]
 log_level = 2
